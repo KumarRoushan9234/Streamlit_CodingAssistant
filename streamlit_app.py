@@ -75,8 +75,6 @@ def get_recent_conversation():
 
 # Streamlit User Interface
 
-# Streamlit User Interface
-
 # Fixed Header with Select Model and Delete Conversation Button
 st.title("AI Coding Assistant")
 col1, col2, col3 = st.columns([2, 7, 1])  # Adjust width ratio
@@ -140,7 +138,7 @@ with st.form(key='chat_form', clear_on_submit=True):
             messages.append({"role": "user", "content": user_input})
 
             try:
-                chat_completion = groq.chat.completions.create(
+                chat_completion = Groq.chat.completions.create(
                     messages=messages,
                     model=selected_model,
                     temperature=0.5,
@@ -210,7 +208,7 @@ with chat_container:
 
 # Show time at the bottom-right of assistant's response, only if response_text is defined
 if 'response_text' in locals():
-    st.markdown("""
+    st.markdown(""" 
     <style>
         .assistant-message-time {
             font-size: 10px;
