@@ -13,7 +13,6 @@ load_dotenv()
 
 # Initialize Groq
 api_key = os.getenv("GROQ_API_KEY")
-groq = Groq(api_key=api_key)
 
 # File paths
 MODEL_FILE = "data.json"
