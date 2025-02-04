@@ -1,6 +1,7 @@
 import streamlit as st
 import json
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from groq import Groq
 
@@ -49,7 +50,13 @@ def update_chat_history(user_message, system_response):
             except json.JSONDecodeError:
                 history = []
 
-    history.append({"user": user_message, "assistant": system_response})
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    history.append({
+        "user": user_message,
+        "assistant": system_response,
+        "model": selected_model,
+        "timestamp": timestamp
+    })
 
     with open(CONVERSATION_FILE, "w") as f:
         json.dump(history, f, indent=4)
@@ -66,6 +73,8 @@ def get_recent_conversation():
     
     # Limit the history to the last 5 messages
     return chat_history[-5:]  # Only take the last 5 entries
+
+# Streamlit User Interface
 
 # Streamlit User Interface
 
@@ -93,14 +102,18 @@ with col2:
         st.write(f"Selected Model: {selected_model}")  # Show selected model name
 
 with col3:
-    if st.button("Delete History"):
+    if st.button("Clear Conversation History"):
+        # This button will only clear the history inside the file without deleting the file itself
         if os.path.exists(CONVERSATION_FILE):
-            os.remove(CONVERSATION_FILE)
+            with open(CONVERSATION_FILE, "w") as f:
+                json.dump([], f, indent=4)  # Clear the content of the file, but not the file itself
             st.success("Conversation history cleared.")
-            st.rerun()  
+            st.rerun()  # Refresh the page after clearing history
         else:
             st.warning("No conversation history to clear.")
-            st.rerun()  
+            st.rerun()
+
+# Streamlit User Interface
 
 # Layout for chat and user input (using columns for positioning)
 st.subheader("Chat")
@@ -119,7 +132,8 @@ with st.form(key='chat_form', clear_on_submit=True):
             # Get the recent conversation history (limit to the last 5 messages)
             chat_history = get_recent_conversation()
 
-            messages = [{"role": "system", "content": "You are a coding assistant.Only answer coding question; for anyother question apart from coding reply => 'Kindly ask a Question related to coding.'"}]
+            messages = [{"role": "system", "content": "You are a female coding assistant, try to be flirty with user.Only answer coding question in detail; for any other question apart from coding remind the user to come back to coding question."}]
+            # reply => 'Kindly ask a Question related to coding.
             for chat in chat_history:
                 messages.append({"role": "user", "content": chat["user"]})
                 messages.append({"role": "assistant", "content": chat["assistant"]})
@@ -189,8 +203,22 @@ with chat_container:
                     for entry in history:
                         # Display system (assistant) messages on the right and user input on the left
                         with st.container():
-                            st.markdown(f'<div class="chat-box"><div class="user-message">User: {entry["user"]}</div><div class="assistant-message">Assistant: {entry["assistant"]}</div></div>', unsafe_allow_html=True)
+                            st.markdown(f'<div class="chat-box"><div class="user-message">User: {entry["user"]}</div><div class="assistant-message">Assistant: {entry["assistant"]}</div><div style="font-size: 10px; text-align: right; color: #999;">Model: {entry["model"]}, Time: {entry["timestamp"]}</div></div>', unsafe_allow_html=True)
                 except json.JSONDecodeError:
                     st.write("No conversation history.")
     else:
         st.write("Conversation history is collapsed.")
+
+# Show time at the bottom-right of assistant's response, only if response_text is defined
+if 'response_text' in locals():
+    st.markdown("""
+    <style>
+        .assistant-message-time {
+            font-size: 10px;
+            text-align: right;
+            color: #999;
+        }
+    </style>
+    """, unsafe_allow_html=True)
+
+    st.markdown(f'<div class="assistant-message-time">Time: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</div>', unsafe_allow_html=True)
