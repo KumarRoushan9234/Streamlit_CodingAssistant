@@ -13,6 +13,7 @@ load_dotenv()
 
 # Initialize Groq
 api_key = os.getenv("GROQ_API_KEY")
+groq = Groq(api_key=api_key)
 
 # File paths
 MODEL_FILE = "data.json"
@@ -72,6 +73,8 @@ def get_recent_conversation():
     
     # Limit the history to the last 5 messages
     return chat_history[-5:]  # Only take the last 5 entries
+
+# Streamlit User Interface
 
 # Streamlit User Interface
 
@@ -138,7 +141,7 @@ with st.form(key='chat_form', clear_on_submit=True):
             messages.append({"role": "user", "content": user_input})
 
             try:
-                chat_completion = Groq.chat.completions.create(
+                chat_completion = groq.chat.completions.create(
                     messages=messages,
                     model=selected_model,
                     temperature=0.5,
@@ -208,7 +211,7 @@ with chat_container:
 
 # Show time at the bottom-right of assistant's response, only if response_text is defined
 if 'response_text' in locals():
-    st.markdown(""" 
+    st.markdown("""
     <style>
         .assistant-message-time {
             font-size: 10px;
